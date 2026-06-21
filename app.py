@@ -48,18 +48,19 @@ if yuklenen_dosya is not None:
     str_app.image(gorsel, caption="Yüklenen Görsel", use_container_width=True)
     
     if str_app.button("Fişi İşle ve Gönder 🚀"):
-        # İsim kontrolünü butonun hemen içinde yapıyoruz ki Streamlit atlama yapmasın
+        # Boş isim kontrolü
         if not satisci_adi.strip():
             str_app.error("Lütfen işlem yapmadan önce adınızı ve soyadınızı girin!")
         else:
             gecici_yol = "gecici_gorsel.jpeg"
             gorsel.save(gecici_yol)
             
-            with str_app.spinner("Yapay zeka analiz ediyor, lütfen bekleyin..."):
+            with str_app.spinner("Yapay zeka analiz ediyor ve Excel'e kaydediyor..."):
                 try:
+                    # 1. Yapay zekadan analiz sonucunu alıyoruz
                     analiz_sonucu_metin = fis_verilerini_ayıkla(gecici_yol)
                     
-                    # Markdown temizliği (Eğer yapay zeka ```json ... ``` formatında döndüyse temizle)
+                    # Markdown temizliği (Eğer ```json ... ``` formatında geldiyse ayıklıyoruz)
                     temiz_metin = analiz_sonucu_metin.strip()
                     if temiz_metin.startswith("```"):
                         temiz_metin = temiz_metin.split("```")[1]
@@ -68,23 +69,24 @@ if yuklenen_dosya is not None:
                     
                     analiz_sonucu = json.loads(temiz_metin)
                     
-                    # --- ESNEK VERİ YAKALAMA ALGORİTMASI ---
-                    sirket_adi = analiz_sonucu.get('Şiriket Adı') or analiz_sonucu.get('Şirket Adı') or analiz_sonucu.get('Şirket adı') or analiz_sonucu.get('sirket_adi') or 'Bulunamadı'
-                    tarih = analiz_sonucu.get('Tarih') or analiz_sonucu.get('tarih') or analiz_sonucu.get('Fiş Tarihi') or analiz_sonucu.get('fiş tarihi') or 'Bulunamadı'
-                    toplam_tutar = analiz_sonucu.get('Toplam Tutar') or analiz_sonucu.get('Toplam tutar') or analiz_sonucu.get('toplam_tutar') or 'Bulunamadı'
+                    # --- ESNEK VERİ YAKALAMA (Prompt Anahtarlarına Göre) ---
+                    sirket_adi = analiz_sonucu.get('1. Şirket Adı') or analiz_sonucu.get('Şirket Adı') or analiz_sonucu.get('Şirket adı') or 'Bulunamadı'
+                    tarih = analiz_sonucu.get('2. Tarih') or analiz_sonucu.get('Tarih') or analiz_sonucu.get('tarih') or 'Bulunamadı'
+                    toplam_tutar = analiz_sonucu.get('3. Toplam Tutar') or analiz_sonucu.get('Toplam Tutar') or 'Bulunamadı'
                     
-                    kdv_orani = analiz_sonucu.get('KDV Oranı') or analiz_sonucu.get('KDV oranı') or analiz_sonucu.get('kdv_orani') or 'Bulunamadı'
+                    kdv_orani = analiz_sonucu.get('4. KDV Oranı') or analiz_sonucu.get('KDV Oranı') or 'Bulunamadı'
                     if isinstance(kdv_orani, list) and len(kdv_orani) > 0:
                         kdv_orani = kdv_orani[0]
                     
-                    kdv_tutari = analiz_sonucu.get('KDV Tutarı') or analiz_sonucu.get('KDV tutarı') or analiz_sonucu.get('kdv_tutari') or 'Bulunamadı'
-                    gercek_numara = analiz_sonucu.get('Fiş Numarası') or analiz_sonucu.get('Fiş numarası') or analiz_sonucu.get('Belge No') or analiz_sonucu.get('fis_numarasi') or 'Bulunamadı'
-                    # ----------------------------------------
+                    kdv_tutari = analiz_sonucu.get('5. KDV Tutarı') or analiz_sonucu.get('KDV Tutarı') or 'Bulunamadı'
+                    gercek_numara = analiz_sonucu.get('6. Fiş Numarası') or analiz_sonucu.get('Fiş Numarası') or analiz_sonucu.get('Belge No') or 'Bulunamadı'
+                    # -----------------------------------------------------
                     
                     # --- EXCEL KAYIT MANTIĞI ---
                     excel_dosya_adi = "saha_giderleri.xlsx"
                     sisteme_kayit_tarihi = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     
+                    # Sizin Excel dosyanızdaki sütun isimleriyle birebir eşleşen yeni satır yapısı
                     yeni_veri = {
                         "Sisteme Kayıt Tarihi": [sisteme_kayit_tarihi],
                         "Satış Temsilcisi": [satisci_adi],
@@ -92,9 +94,9 @@ if yuklenen_dosya is not None:
                         "Açıklama": [harcama_aciklamasi if harcama_aciklamasi else "Belirtilmedi"],
                         "Şirket Adı": [sirket_adi],
                         "Fiş Tarihi": [tarih],
-                        "Toplam Tutar (TL)": [toplam_tutar],
+                        "Toplam Tutar": [toplam_tutar],
                         "KDV Oranı": [kdv_orani],
-                        "KDV Tutarı (TL)": [kdv_tutari],
+                        "KDV Tutarı": [kdv_tutari],
                         "Belge No": [gercek_numara]
                     }
                     
@@ -102,16 +104,18 @@ if yuklenen_dosya is not None:
                     
                     if os.path.exists(excel_dosya_adi):
                         df_eski = pd.read_excel(excel_dosya_adi)
+                        # Tablonun altına yeni kaydı ekliyoruz
                         df_son = pd.concat([df_eski, df_yeni], ignore_index=True)
                     else:
                         df_son = df_yeni
                     
+                    # Değişiklikleri tam hedeflediğiniz Excel dosyasına kaydediyoruz
                     df_son.to_excel(excel_dosya_adi, index=False)
                     # ----------------------------
                     
-                    str_app.success("İşlem başarıyla okundu ve Excel dosyasına satır olarak kaydedildi! 📊✅")
+                    str_app.success("İşlem başarıyla okundu ve Excel dosyasına kaydedildi! 📊✅")
                     
-                    # Ekran Çıktısı (Kullanıcı Görebilsin Diye)
+                    # Arayüz Bilgi Ekranı
                     str_app.subheader("📊 Ayıklanan Muhasebe Bilgileri")
                     str_app.write(f"**Yükleyen Satışçı:** {satisci_adi}")
                     str_app.write(f"**Harcama Kategorisi:** {secilen_kategori}")
@@ -125,15 +129,18 @@ if yuklenen_dosya is not None:
                     str_app.write(f"**KDV Tutarı:** {kdv_tutari} TL")
                     str_app.write(f"**Belge No:** {gercek_numara}")
                     
-                    # Güncel Excel tablosunu canlı önizleme olarak basalım
-                    str_app.markdown("### 📋 Güncel Gider Tablosu (Excel Verisi)")
+                    # Excel tablosunun güncel halini canlı önizleme olarak Streamlit'e basalım
+                    str_app.markdown("### 📋 Güncel Gider Tablosu (saha_giderleri.xlsx)")
                     str_app.dataframe(df_son)
                     
                 except Exception as e:
-                    str_app.error(f"Veri çözümlenirken bir hata oluştu: {e}")
+                    str_app.error(f"Veri çözümlenirken veya Excel'e yazılırken bir hata oluştu: {e}")
                     if 'analiz_sonucu_metin' in locals():
-                        str_app.info("Yapay Zekadan Gelen Ham Metin:")
+                        str_app.info("Yapay Zekadan Gelen Ham Çıktı:")
                         str_app.code(analiz_sonucu_metin)
                 finally:
                     if os.path.exists(gecici_yol):
                         os.remove(gecici_yol)
+
+elif yuklenen_dosya is not None and satisci_adi == "":
+    str_app.warning("Lütfen işlem yapmadan önce adınızı ve soyadınızı girin.")
