@@ -5,7 +5,11 @@ from fis_okuyucu import fis_verilerini_ayıkla
 import json
 import pandas as pd
 from datetime import datetime
-
+# API Anahtarı Kontrolü
+if "GEMINI_API_KEY" in str_app.secrets:
+    str_app.sidebar.success("API Anahtarı başarıyla algılandı!")
+else:
+    str_app.sidebar.error("HATA: API Anahtarı bulunamadı! Lütfen Secrets panelini kontrol edin.")
 str_app.set_page_config(page_title="Saha Gider Takip Sistemi", page_icon="📱", layout="centered")
 
 str_app.title("📱 Saha Gider Takip Sistemi")
