@@ -8,7 +8,7 @@ import streamlit as str_app
 # Not: API anahtarınızı güvenliğiniz için ortam değişkeni (Environment Variable) 
 # olarak 'GEMINI_API_KEY' adıyla kaydetmeniz önerilir.
 # 1. API Anahtarınızı Güvenli Kasadan Tanımlayın
-os.environ["GEMINI_API_KEY"] = "AQ.Ab8RN6Ib3juMx46rztU-BkyWUnb0fxAnXTbJz0eZLOXSlukyA"
+os.environ["GEMINI_API_KEY"] = str_app.secrets["GEMINI_API_KEY"]
 
 def fis_verilerini_ayıkla(gorsel_yolu: str):
     """
