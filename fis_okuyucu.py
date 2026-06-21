@@ -8,8 +8,11 @@ def fis_verilerini_ayıkla(gorsel_yolu: str):
     """
     Verilen fiş/fatura fotoğrafını analiz eder ve muhasebe bilgilerini çeker.
     """
-    # Google GenAI istemcisini başlatıyoruz
-    client = genai.Client(api_key=str_app.secrets["GEMINI_API_KEY"])
+# Streamlit secrets'taki anahtarı doğrudan sistem hafızasına zorla yazıyoruz
+os.environ["GEMINI_API_KEY"] = str_app.secrets["GEMINI_API_KEY"]
+
+# İstemciyi hiçbir parametre vermeden başlatıyoruz
+client = genai.Client()
     
     # Görseli yüklüyoruz
     try:
