@@ -35,9 +35,9 @@ def fis_verilerini_ayıkla(gorsel_yolu: str):
     
     print("Görsel analiz ediliyor, lütfen bekleyin...")
     
-    # gemini-2.5-flash modelini çağırıyoruz (Hem hızlı hem de görsel okumada çok başarılı)
+    # gemini-1.5-flash modelini çağırıyoruz (Hem hızlı hem de görsel okumada çok başarılı)
     response = client.models.generate_content(
-        model='gemini-2.5-flash',
+        model='gemini-1.5-flash',
         contents=[gorsel, talimat],
         # Çıktının kesinlikle JSON formatında gelmesini zorunlu kılıyoruz
         config=types.GenerateContentConfig(
