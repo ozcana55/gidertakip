@@ -4,15 +4,12 @@ from google.genai import types
 from PIL import Image
 import streamlit as str_app
 
-# API Anahtarınızı Doğrudan Tanımlıyoruz (Kasa sorununu baypas etmek için)
-os.environ["GEMINI_API_KEY"] = "AQ.Ab8RN6Ib3juMx46rztU-BkyWUnb0fxAnXTbJz0eZLOXSlukyA"
-
 def fis_verilerini_ayıkla(gorsel_yolu: str):
     """
     Verilen fiş/fatura fotoğrafını analiz eder ve muhasebe bilgilerini çeker.
     """
     # Google GenAI istemcisini başlatıyoruz
-    client = genai.Client()
+    client = genai.Client(api_key=str_app.secrets["GEMINI_API_KEY"])
     
     # Görseli yüklüyoruz
     try:
